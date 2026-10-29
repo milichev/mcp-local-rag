@@ -1,0 +1,20 @@
+[
+  {
+    "id": "minilm-fp32",
+    "modelName": "Xenova/all-MiniLM-L6-v2"
+  },
+  {
+    "id": "gemma-q8-text",
+    "modelName": "onnx-community/embeddinggemma-2-ONNX",
+    "dtype": "q8",
+    "modelConfig": {
+      "audio_config": null,
+      "vision_config": null
+    }
+  },
+  {
+    "id": "gemma-q8-default",
+    "modelName": "onnx-community/embeddinggemma-2-ONNX",
+    "dtype": "q8"
+  }
+]

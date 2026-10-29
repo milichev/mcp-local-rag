@@ -12,7 +12,7 @@ import {
   type DeviceType,
   env,
   ModelRegistry,
-  type PretrainedConfig,
+  PretrainedConfig,
   pipeline,
 } from '@huggingface/transformers'
 import { AppError, toError } from '../utils/errors.js'
@@ -45,6 +45,8 @@ export interface EmbedderConfig {
    * distinction gates failure-path error enrichment, so keep it.
    */
   dtype?: string
+  /** Top-level overrides for the full Transformers.js model configuration. */
+  modelConfig?: Record<string, unknown> | undefined
   /**
    * Embed document chunks behind a `Title:` line naming their document
    * (default: false). Read by ingestion, which builds the embedding input.
@@ -463,12 +465,22 @@ export class Embedder {
     console.error(`Embedder: Loading model "${this.config.modelPath}" on device "${device}"...`)
 
     try {
+      const pretrainedConfig = await AutoConfig.from_pretrained(this.config.modelPath, {
+        cache_dir: this.config.cacheDir,
+      })
+      const config = this.config.modelConfig
+        ? new PretrainedConfig({ ...pretrainedConfig, ...this.config.modelConfig })
+        : pretrainedConfig
       // Capture local asset names and file signatures before the pipeline can
       // load them. Later content hashes are trusted only while these exact
       // files remain unchanged, so a disk update during model loading cannot
       // assign the new asset identity to an older in-memory pipeline.
-      const assetSnapshot = await this.captureModelAssetSnapshot(dtype, device)
-      this.model = await pipeline('feature-extraction', this.config.modelPath, { dtype, device })
+      const assetSnapshot = await this.captureModelAssetSnapshot(dtype, device, config)
+      this.model = await pipeline('feature-extraction', this.config.modelPath, {
+        dtype,
+        device,
+        config,
+      })
       const loadedModel = this.model
       const clamp = installTokenLimitClamp(loadedModel)
       this.tokenLimit = clamp.tokenLimit
@@ -611,6 +623,7 @@ export class Embedder {
         nodeVersion: process.versions.node,
         transformersVersion: env.version,
         modelPath: this.config.modelPath,
+        modelConfig: loadedConfig,
         device,
         dtype,
         prompts: this.prompts,
@@ -649,7 +662,8 @@ export class Embedder {
 
   private async captureModelAssetSnapshot(
     dtype: DataType,
-    device: DeviceType
+    device: DeviceType,
+    config: PretrainedConfig
   ): Promise<ModelAssetSnapshot | null> {
     try {
       const tokenizerConfigPath = await this.resolveAssetPath('tokenizer_config.json')
@@ -664,10 +678,6 @@ export class Embedder {
         return null
       }
 
-      const config = await AutoConfig.from_pretrained(this.config.modelPath, {
-        cache_dir: this.config.cacheDir,
-        local_files_only: true,
-      })
       if (!isPretrainedConfig(config)) {
         return null
       }

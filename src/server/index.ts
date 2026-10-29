@@ -345,6 +345,7 @@ export class RAGServer {
       modelPath: config.modelName,
       batchSize: 16,
       cacheDir: config.cacheDir,
+      modelConfig: config.modelConfig,
     }
     if (config.device !== undefined) {
       embedderConfig.device = config.device

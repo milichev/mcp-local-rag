@@ -24,6 +24,7 @@ import {
   RERANK_TIMEOUT_MAX_MS,
   RERANK_TIMEOUT_MIN_MS,
 } from './utils/limits.js'
+import { parseModelConfig } from './utils/model-config.js'
 import { checkSensitivePath } from './utils/sensitive-path.js'
 
 // ============================================
@@ -270,6 +271,10 @@ export async function resolveServerConfig(
 
   configWarnings.push(...applyOptionalSettings(config, env))
 
+  const modelConfig = parseModelConfig(env['RAG_MODEL_CONFIG'])
+  if (modelConfig !== undefined) {
+    config.modelConfig = modelConfig
+  }
   // Set dtype only when defined, so config.dtype === undefined keeps meaning
   // "RAG_DTYPE unset" (the embedder then applies its fp32 default).
   const dtype = resolveDtype(env['RAG_DTYPE'])

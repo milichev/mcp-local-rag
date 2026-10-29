@@ -150,11 +150,17 @@ describe('cli/common', () => {
   describe('createEmbedder', () => {
     const originalDevice = process.env['RAG_DEVICE']
     const originalDtype = process.env['RAG_DTYPE']
+    const originalModelConfig = process.env['RAG_MODEL_CONFIG']
     const originalTitlePrefix = process.env['EMBED_TITLE_PREFIX']
     const originalHeadingPrefix = process.env['EMBED_HEADING_PREFIX']
 
     afterEach(() => {
       mocks.Embedder.mockReset()
+      if (originalModelConfig === undefined) {
+        delete process.env['RAG_MODEL_CONFIG']
+      } else {
+        process.env['RAG_MODEL_CONFIG'] = originalModelConfig
+      }
       if (originalHeadingPrefix === undefined) {
         delete process.env['EMBED_HEADING_PREFIX']
       } else {
@@ -207,6 +213,16 @@ describe('cli/common', () => {
       expect(mocks.Embedder).toHaveBeenCalledOnce()
       const passedConfig = mocks.Embedder.mock.calls[0]?.[0]
       expect(passedConfig).not.toHaveProperty('dtype')
+    })
+
+    it('passes parsed model overrides to the Embedder', () => {
+      process.env['RAG_MODEL_CONFIG'] = '{"audio_config":null,"vision_config":null}'
+      createEmbedder(makeConfig({}))
+      expect(mocks.Embedder).toHaveBeenCalledWith(
+        expect.objectContaining({
+          modelConfig: { audio_config: null, vision_config: null },
+        })
+      )
     })
 
     it('passes RAG_DTYPE through to the Embedder when set', () => {

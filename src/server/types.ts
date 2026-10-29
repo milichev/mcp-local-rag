@@ -24,6 +24,8 @@ interface RAGServerConfigBase {
   device?: string
   /** Embedding quantization dtype (fp32, fp16, q8, int8, ...). Unset → fp32. */
   dtype?: string
+  /** Top-level Transformers.js model config overrides. */
+  modelConfig?: Record<string, unknown>
   /** Maximum distance threshold for quality filtering (optional) */
   maxDistance?: number
   /** Grouping mode for quality filtering (optional) */

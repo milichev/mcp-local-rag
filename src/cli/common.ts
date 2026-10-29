@@ -10,6 +10,7 @@ import {
   resolveBaseDirs,
 } from '../utils/base-dirs.js'
 import { getCauseChain } from '../utils/errors.js'
+import { parseModelConfig } from '../utils/model-config.js'
 import { buildScanExclusion, type ScanExclusion } from '../utils/scan.js'
 import { checkSensitivePath } from '../utils/sensitive-path.js'
 import { VectorStore } from '../vectordb/index.js'
@@ -72,6 +73,10 @@ export function createEmbedder(config: ResolvedGlobalConfig): Embedder {
     batchSize: 16,
     cacheDir: config.cacheDir,
     device: resolveDevice(process.env['RAG_DEVICE']),
+  }
+  const modelConfig = parseModelConfig(process.env['RAG_MODEL_CONFIG'])
+  if (modelConfig !== undefined) {
+    embedderConfig.modelConfig = modelConfig
   }
   // Set dtype only when RAG_DTYPE resolves to a defined value, mirroring the
   // server path — an unset RAG_DTYPE leaves config.dtype undefined so the

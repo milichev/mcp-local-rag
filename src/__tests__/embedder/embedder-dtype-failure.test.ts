@@ -29,6 +29,7 @@ const mocks = vi.hoisted(() => {
 
 const transformersFactory = () => ({
   pipeline: mocks.pipeline,
+  AutoConfig: { from_pretrained: async () => ({ model_type: 'bert' }) },
   // `env` is mutated by `initialize()` (sets cacheDir); a plain object suffices.
   env: asDouble<Record<string, string | undefined>>({}),
   ModelRegistry: {

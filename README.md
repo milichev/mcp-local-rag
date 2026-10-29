@@ -302,6 +302,20 @@ mean pooling and L2 normalization, which this tool uses to produce embeddings.
 | `EMBED_HEADING_PREFIX` | N/A | `false` | Add the heading hierarchy to each chunk's embedding input when it fits |
 | `RAG_DEVICE` | N/A | `cpu` | ONNX Runtime execution device |
 | `RAG_DTYPE` | N/A | `fp32` | Embedding dtype passed to the selected model |
+| `RAG_MODEL_CONFIG` | N/A | Unset | JSON object of top-level Transformers.js model config overrides (MCP and CLI) |
+
+`RAG_MODEL_CONFIG` replaces specified top-level fields in the full model configuration before
+loading. Nested objects are replaced, not merged. Other fields keep their model defaults.
+Field names and values depend on the selected model; invalid JSON or a non-object stops startup.
+For text-only EmbeddingGemma 2, use:
+
+```sh
+export RAG_MODEL_CONFIG='{"audio_config":null,"vision_config":null}'
+```
+
+This prevents loading its audio and vision encoders. Cached files remain on disk.
+Use the same overrides for ingestion and search. Changes that affect embeddings require
+re-ingestion of all documents.
 
 Both prefix options default to `false` and work independently. Try `EMBED_TITLE_PREFIX` when a
 passage needs the document’s overall topic, or `EMBED_HEADING_PREFIX` when it needs its

@@ -134,3 +134,19 @@ describe('MAX_FILE_SIZE configuration', () => {
     expect(config.configWarnings?.join('\n') ?? '').not.toContain('Invalid MAX_FILE_SIZE')
   })
 })
+
+describe('model configuration overrides', () => {
+  it('passes parsed overrides into the server configuration', async () => {
+    const config = await resolveServerConfig(
+      { RAG_MODEL_CONFIG: '{"vision_config":null}' },
+      process.cwd()
+    )
+    expect(config.modelConfig).toEqual({ vision_config: null })
+  })
+
+  it('rejects invalid overrides before server startup', async () => {
+    await expect(resolveServerConfig({ RAG_MODEL_CONFIG: '[]' }, process.cwd())).rejects.toThrow(
+      'RAG_MODEL_CONFIG'
+    )
+  })
+})
